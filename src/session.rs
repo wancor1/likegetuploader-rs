@@ -23,11 +23,16 @@ impl Sess {
         let sid;
         {
             let mut m = st.sessions.lock().unwrap();
+            let now = crate::util::now();
             match cookie_sid {
-                Some(s) if m.contains_key(&s) => sid = s,
+                Some(s) if m.contains_key(&s) => {
+                    if let Some(v) = m.get_mut(&s) {
+                        v.last = now;
+                    }
+                    sid = s;
+                }
                 _ => {
-                    let now = crate::util::now();
-                    m.retain(|_, v| v.ts_until > now - 86400 * 14);
+                    m.retain(|_, v| v.last > now - 86400 * 14);
                     loop {
                         let s = crate::util::rand_hex(32);
                         if !m.contains_key(&s) {
@@ -35,6 +40,7 @@ impl Sess {
                                 s.clone(),
                                 Session {
                                     csrf: crate::util::rand_hex(32),
+                                    last: now,
                                     ..Default::default()
                                 },
                             );

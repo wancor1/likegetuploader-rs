@@ -37,6 +37,8 @@ pub struct Session {
     pub admin: bool,
     pub flash: Option<String>,
     pub ts_until: i64,
+    /// 最終活動時刻（セッション掃除用）
+    pub last: i64,
 }
 
 impl WebData {

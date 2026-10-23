@@ -84,7 +84,7 @@ pub async fn dl(
     let name = f.name.clone();
     let ascii: String = name
         .chars()
-        .map(|c| if c.is_ascii() && c >= ' ' && c != '"' && c != '\\' { c } else { '_' })
+        .map(|c| if c.is_ascii_graphic() && c != '"' && c != '\\' && c != ',' && c != ';' { c } else { '_' })
         .collect();
     let disp = format!(
         "attachment; filename=\"{}\"; filename*=UTF-8''{}",
