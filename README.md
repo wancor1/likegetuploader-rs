@@ -1,5 +1,9 @@
 <p align="center"><img src="docs/social-preview.png" alt="likegetuploader" width="640"></p>
 
+> [!Warning]
+ AI Slop!  
+ model: opencode GLM-5.3-Flash Free
+
 # likeget-uploader (Rust 版)
 
 uploader.jp のようなリスト式アップローダー。
