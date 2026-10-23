@@ -107,40 +107,45 @@ fn main() {
             App::new()
                 .app_data(data_for_server.clone())
                 .app_data(web::PayloadConfig::new(48 * 1024 * 1024))
-                .wrap(actix_web::middleware::Compress::default())
-                .service(web::resource("/").route(web::get().to(page_list::index)))
-                .service(web::resource("rules").route(web::get().to(page_rules::rules)))
-                .service(
-                    web::resource("contact")
-                        .route(web::get().to(page_contact::contact))
-                        .route(web::post().to(page_contact::contact)),
-                )
-                .service(
-                    web::resource("download/{id}")
-                        .route(web::get().to(page_file::detail))
-                        .route(web::post().to(page_file::detail)),
-                )
-                .service(
-                    web::resource("file")
-                        .route(web::get().to(page_file::detail))
-                        .route(web::post().to(page_file::detail)),
-                )
-                .service(
-                    web::resource("file.php")
-                        .route(web::get().to(page_file::detail))
-                        .route(web::post().to(page_file::detail)),
-                )
+                // 大きなファイル本体が流れるルートは圧縮しない（先に登録してスコープに吸われないようにする）
                 .service(web::resource("dl").route(web::get().to(hdl_dl::dl)).route(web::post().to(hdl_dl::dl)))
                 .service(web::resource("upload").route(web::post().to(hdl_upload::upload)))
-                .service(
-                    web::resource("admin")
-                        .route(web::get().to(page_admin::admin))
-                        .route(web::post().to(page_admin::admin)),
-                )
-                .service(web::resource("admin.php").route(web::get().to(legacy_admin)))
                 .service(web::resource("ads.txt").route(web::get().to(hdl_assets::adstxt)))
                 .service(web::resource("favicon.ico").route(web::get().to(hdl_assets::favicon)))
                 .service(web::resource("assets/{tail:.*}").route(web::get().to(hdl_assets::asset_file)))
+                // 圧縮は HTML 系ページのみ
+                .service(
+                    web::scope("")
+                        .wrap(actix_web::middleware::Compress::default())
+                        .service(web::resource("/").route(web::get().to(page_list::index)))
+                        .service(web::resource("rules").route(web::get().to(page_rules::rules)))
+                        .service(
+                            web::resource("contact")
+                                .route(web::get().to(page_contact::contact))
+                                .route(web::post().to(page_contact::contact)),
+                        )
+                        .service(
+                            web::resource("download/{id}")
+                                .route(web::get().to(page_file::detail))
+                                .route(web::post().to(page_file::detail)),
+                        )
+                        .service(
+                            web::resource("file")
+                                .route(web::get().to(page_file::detail))
+                                .route(web::post().to(page_file::detail)),
+                        )
+                        .service(
+                            web::resource("file.php")
+                                .route(web::get().to(page_file::detail))
+                                .route(web::post().to(page_file::detail)),
+                        )
+                        .service(
+                            web::resource("admin")
+                                .route(web::get().to(page_admin::admin))
+                                .route(web::post().to(page_admin::admin)),
+                        )
+                        .service(web::resource("admin.php").route(web::get().to(legacy_admin))),
+                )
         })
         .bind(&listen)
         .unwrap_or_else(|e| panic!("リッスンできませんでした({listen}): {e}"))
