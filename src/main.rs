@@ -94,6 +94,15 @@ fn main() {
 
     let data_for_server = data.clone();
     actix_web::rt::System::new().block_on(async move {
+        // 背景: デモモードの自動削除と古いtmpの掃除を定期実行（10分ごとに1/2の確率で走る）
+        let data_bg = data_for_server.clone();
+        actix_web::rt::spawn(async move {
+            loop {
+                actix_web::rt::time::sleep(std::time::Duration::from_secs(600)).await;
+                crate::db::demo_purge(&data_bg, false);
+                crate::hdl_upload::cleanup_tmp(&data_bg);
+            }
+        });
         HttpServer::new(move || {
             App::new()
                 .app_data(data_for_server.clone())

@@ -59,6 +59,7 @@ pub struct FileRow {
     pub name: String,
     pub comment: String,
     pub size: i64,
+    #[allow(dead_code)]
     pub mime: String,
     pub md5: String,
     pub created_at: i64,
@@ -67,6 +68,8 @@ pub struct FileRow {
     pub dlpass: Option<String>,
     pub ip: String,
     pub hidden: i64,
+    /// 取り込み済みファイルはデモモード自動削除の対象外
+    #[allow(dead_code)]
     pub imported: i64,
     pub skey: Option<String>,
 }
@@ -191,6 +194,7 @@ impl crate::state::WebData {
     }
 
     /// ローカル保存が有効（storage=local）
+    #[allow(dead_code)]
     pub fn local_storage(&self) -> bool {
         self.cfg.storage != "s3"
     }
@@ -213,7 +217,7 @@ pub fn demo_purge(st: &crate::state::WebData, force: bool) {
     }
     for f in &rows {
         st.storage_delete(f);
-        st.db_call(|c| c.execute("DELETE FROM files WHERE id = ?", params![f.id]));
+        let _ = st.db_call(|c| c.execute("DELETE FROM files WHERE id = ?", params![f.id]));
     }
 }
 

@@ -114,6 +114,7 @@ impl Sess {
 }
 
 /// 新しいsidをセッションストアに入れて返す
+#[allow(dead_code)]
 pub fn solidify(_st: &web::Data<WebData>, sess: &Sess) {
     let _ = sess; // open() 時点でストアに入れているため特別処理は不要
 }

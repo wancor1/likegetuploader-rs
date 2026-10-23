@@ -29,6 +29,7 @@ pub fn req_header(req: &HttpRequest, name: &str) -> String {
         .to_string()
 }
 
+#[allow(dead_code)]
 pub fn wants_json(req: &HttpRequest) -> bool {
     req_header(req, "Accept").contains("application/json")
 }

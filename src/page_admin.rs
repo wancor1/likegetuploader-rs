@@ -692,7 +692,6 @@ fn tab_system(st: &web::Data<WebData>, csrf: &str) -> String {
     out
 }
 
-fn tab_system_guard() {}
 
 
 fn test_s3(st: &web::Data<WebData>) -> Result<bool, String> {

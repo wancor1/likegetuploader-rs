@@ -344,50 +344,42 @@ fn complete_response(
     }))
 }
 
-/// 古い作業ファイルの掃除（1日以上前のもの。S3の途中データも中止させる）
-fn cleanup_tmp(st: &web::Data<WebData>) {
-    use rand::Rng;
-    if rand::thread_rng().gen_range(0..20) != 0 {
-        return;
-    }
-    let tokens: Vec<String> = {
-        let s = st.senders.lock().unwrap();
-        s.keys().cloned().collect()
-    };
-    for tok in tokens {
-        let part = st.data().join("tmp").join(format!("{tok}.part"));
-        let ok = std::fs::metadata(&part)
+/// 古い作業ファイルの掃除（1日の。S3の途中データも中止させる）
+/// tmp/ 以下の実ファイルを走査して古いものを消す（送信者マップが消えた token の残骸も拾う）
+pub(crate) fn cleanup_tmp(st: &web::Data<WebData>) {
+    let tmp = st.data().join("tmp");
+    let ok = std::fs::read_dir(&tmp)
+        .map(|rd| {
+            rd.filter_map(|e| e.ok())
+                .map(|e| e.path())
+                .filter(|p| {
+                    let n = p.file_name().and_then(|x| x.to_str()).unwrap_or("");
+                    n.ends_with(".part") || n.ends_with(".tmp")
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    for p in ok {
+        let age = std::fs::metadata(&p)
             .ok()
             .and_then(|m| m.modified().ok())
             .and_then(|t| t.elapsed().ok())
             .map(|d| d.as_secs())
             .unwrap_or(0);
-        if ok < 86400 {
+        if age < 86400 {
             continue;
         }
-        if let Some(m) = st.senders.lock().unwrap().get(&tok).cloned() {
+        let stem = p.file_stem().and_then(|x| x.to_str()).unwrap_or("").to_string();
+        if let Some(m) = st.senders.lock().unwrap().get(&stem).cloned() {
             if let (Some(skey), Some(uid)) = (m.skey.clone(), m.s3_upload.clone()) {
                 crate::s3::mp_abort(st, &skey, &uid);
             }
         }
-        st.senders.lock().unwrap().remove(&tok);
-        st.md5s.lock().unwrap().remove(&tok);
-        let _ = std::fs::remove_file(&part);
+        st.senders.lock().unwrap().remove(&stem);
+        st.md5s.lock().unwrap().remove(&stem);
+        let _ = std::fs::remove_file(&p);
     }
 }
 
-impl WebData {
-    pub fn senders_lock_update(&self, token: &str, f: impl FnOnce(&mut Sender)) {
-        if let Some(x) = self.senders.lock().unwrap().get_mut(token) {
-            f(x);
-        }
-    }
-    pub fn senders_clone(&self, token: &str) -> Option<Sender> {
-        self.senders.lock().unwrap().get(token).cloned()
-    }
-    pub fn senders_remove(&self, token: &str) {
-        self.senders.lock().unwrap().remove(token);
-    }
-}
 
 
