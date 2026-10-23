@@ -107,6 +107,7 @@ fn main() {
             App::new()
                 .app_data(data_for_server.clone())
                 .app_data(web::PayloadConfig::new(48 * 1024 * 1024))
+                .wrap(actix_web::middleware::Compress::default())
                 .service(web::resource("/").route(web::get().to(page_list::index)))
                 .service(web::resource("rules").route(web::get().to(page_rules::rules)))
                 .service(

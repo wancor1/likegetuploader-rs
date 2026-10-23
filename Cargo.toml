@@ -27,5 +27,6 @@ percent-encoding = "2"
 tokio-util = { version = "0.7", features = ["io"] }
 
 [profile.release]
-opt-level = "z"
+opt-level = 3
 lto = true
+codegen-units = 1

@@ -43,7 +43,10 @@ fn serve_root(st: &web::Data<WebData>, rel: String) -> HttpResponse {
         _ => "application/octet-stream",
     };
     match std::fs::read(&p) {
-        Ok(bytes) => HttpResponse::Ok().content_type(mime).body(bytes),
+        Ok(bytes) => HttpResponse::Ok()
+            .insert_header(("Cache-Control", "public, max-age=86400"))
+            .content_type(mime)
+            .body(bytes),
         Err(_) => HttpResponse::NotFound().finish(),
     }
 }
