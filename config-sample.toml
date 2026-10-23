@@ -1,0 +1,99 @@
+# ===============================================================
+#  likeget-uploader (Rust) 設定ファイル
+#  このファイルを config.toml という名前でコピーして編集してください
+# ===============================================================
+
+# ---- 表示 ----
+title = 'アップローダー'
+description = 'ファイルを共有するためのアップローダーです。'
+# トップに出すお知らせ（HTML可・空なら非表示）
+notice = ''
+# 公開URL（末尾スラッシュなし）。共有URL表示に使う。空ならリクエストから自動判定
+base_url = ''
+per_page = 50
+# /download/123 形式のURLを使う
+pretty_urls = true
+# 時刻表示に使うUTCオフセット（時間）。日本=9
+utc_offset_hours = 9
+
+# ---- ファビコン・OGP（SNSでURLを貼った時のカード）----
+# OGP画像（1200×630推奨）。空なら assets/ogp.png。アプリ内のパスか https:// から始まるURL
+ogp_image = ''
+twitter_site = ''        # X(Twitter)のアカウント（例: @example）。空なら出さない
+theme_color = '#2b3440'  # スマホのブラウザのバーの色
+
+# ---- 管理 ----
+admin_password = 'change-me'                          # 必ず変更
+secret = 'change-this-to-a-long-random-string'        # IPハッシュ用の秘密文字列。必ず変更
+
+# ---- アップロード制限 ----
+max_file_size  = 209715200      # 1ファイルの上限 (200MB)
+max_total_size = 53687091200    # 全体の上限 (50GB)
+chunk_size     = 8388608        # 分割送信の1回分 (Cloudflareの100MB制限対策)
+max_comment    = 200
+upload_password = ''            # 空なら誰でもアップロード可
+uploads_per_hour = 20
+allow_ext = []                  # 許可する拡張子（空配列なら deny_ext 以外すべて許可）
+deny_ext  = ['php','php3','php4','php5','php7','phtml','phar','cgi','pl','py','sh','asp','aspx','jsp','htaccess','html','htm','shtml','xhtml','svg','js']
+
+# ---- ダウンロード ----
+dl_count_window = 3600          # 同じ人からの連続DLを重複カウントしない秒数
+
+# ---- 保存先 ----
+# 'local' = このサーバーの data/files に保存 / 's3' = S3互換ストレージに保存
+# 途中で切り替えても、それまでのファイルは元の場所から配信される（move-to-s3 サブコマンドで移動も可）
+storage = 'local'
+
+[s3]
+endpoint = 'https://s3.us-west-004.backblazeb2.com'
+region   = 'us-west-004'
+bucket   = ''
+key      = ''           # アクセスキーID（B2なら keyID）
+secret   = ''           # シークレットキー（B2なら applicationKey）
+prefix   = 'uploads/'   # バケット内の保存フォルダ
+path_style = true
+# ダウンロード方法: 空 = 署名付きURL（バケット非公開のまま使える・推奨）
+#                   URLを書く = 公開バケット/CDN経由
+public_url  = ''
+url_expires = 300       # 署名付きURLの有効秒数
+
+# ---- Cloudflare Turnstile（人間確認）----
+[turnstile]
+site_key   = ''
+secret_key = ''
+upload     = true    # アップロード時
+download   = false   # ダウンロード時
+contact    = true    # お問い合わせ送信時
+admin      = true    # 管理画面ログイン時
+ttl        = 600     # 一度確認が通ったら、この秒数は同じ人に再確認しない
+
+# ---- 管理者へのメール通知（SMTP）----
+[mail]
+enabled = false
+host  = 'smtp.example.com'
+port  = 587
+secure = 'tls'          # 'tls' = STARTTLS(587) / 'ssl' = SSL(465) / 'none' = 暗号化なし
+user = ''
+pass = ''
+from = 'noreply@example.com'
+from_name = ''          # 空ならサイト名
+to   = 'admin@example.com'
+verify_peer = true
+notify_contact = true   # お問い合わせが来たとき
+notify_report  = true   # 通報が来たとき
+notify_upload  = false  # 新しいアップロードがあったとき
+
+# ---- デモモード（サンプル公開用）----
+[demo]
+enabled = false
+keep_hours = 24
+max_file_size = 5242880
+
+# フッターに「Powered by likeget-uploader」を表示
+show_powered_by = true
+
+# ---- ネットワーク ----
+# Cloudflare経由のとき true（CF-Connecting-IP を使う）
+behind_cloudflare = false
+# リッスン先
+listen = '0.0.0.0:8080'
